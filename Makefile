@@ -1,6 +1,7 @@
 # makefile for compare_pcl
 
 VERSION=1.0.0-1
+DEST_DIR=/usr/local/lib/lib3d
 PKG_NAME=danbots-tools-lib3d-$(VERSION)
 PKG_FOLDER=tmp/package
 
@@ -10,20 +11,21 @@ help:
 
 install:
 	#chmod a+x prg/*.py
-	mkdir -p /usr/local/lib/lib3d
-	cp lib3d/* /usr/local/lib/lib3d
+	mkdir -p $(DEST_DIR)
+	cp lib3d/* $(DEST_DIR)
 
 uninstall:
-	rm -f /usr/local/lib/lib3d/noise_removal.py
-	rm -f /usr/local/lib/lib3d/pcl_utils.py
-	rm -f /usr/local/lib/lib3d/registration.py
-	rm -f /usr/local/lib/lib3d/stitchl.py
+	rm -f $(DEST_DIR)/noise_removal.py
+	rm -f $(DEST_DIR)/pcl_utils.py
+	rm -f $(DEST_DIR)/registration.py
+	rm -f $(DEST_DIR)/stitch.py
+	-rmdir $(DEST_DIR)
 
 copy-pkg:
 	#mkdir -p $(PKG_FOLDER)
-	mkdir -p $(PKG_FOLDER)/usr/local/lib/lib3d
+	mkdir -p $(PKG_FOLDER)$(DEST_DIR)
 	@echo Copy files
-	cp -r lib3d/* $(PKG_FOLDER)/usr/local/lib/lib3d
+	cp -r lib3d/* $(PKG_FOLDER)$(DEST_DIR)
 
 deb-pkg:	copy-pkg
 	mkdir -p $(PKG_FOLDER)/DEBIAN

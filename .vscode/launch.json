@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Test registration - ph_obj",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "testreg.py",
+            "args": ["-d", "-v", "-s",
+                    "testdata/testobject/ph_obj/test_object_p10K.ply",
+                    "testdata/testobject/ph_obj/distort/dist_0.001.ply"
+                    ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Testlib - register ph_obj",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "testlib.py",
+            "console": "integratedTerminal"
+        }
+
+
+    ]
+}

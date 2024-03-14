@@ -4,8 +4,8 @@ import copy
 import open3d as o3d
 import numpy as np
 
-_DEBUG = False
-_SHOW = False
+_DEBUG = True
+_SHOW = True
 _TIMING = False
 _TMPFILE = True
 
@@ -20,14 +20,18 @@ LOCAL_FITNESS = 0.5
 LOCAL_RMSE = 0.001
 
 
-def draw_registration_result(reference, test_source, transformation, axis=False, window_name="registration result", color=True):   # pylint: disable=too-many-arguments
+def draw_registration_result(reference: o3d.cuda.pybind.geometry.PointCloud, # pylint: disable=too-many-arguments
+                             test_source: o3d.cuda.pybind.geometry.PointCloud,
+                             transformation=None, axis=False, window_name="registration result", color=True):
     "Debug draw registration result"
+    print(type(reference), type(test_source))
     reference_temp = copy.deepcopy(reference)
     test_temp = copy.deepcopy(test_source)
     if color:
         reference_temp.paint_uniform_color([0, 0.7, 0.1])   # green
         test_temp.paint_uniform_color([1, 0.0, 0.1])        # red
-    test_temp.transform(transformation)
+    if transformation:
+        test_temp.transform(transformation)
     pointclouds =[reference_temp, test_temp]
     if axis:
         axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.01, origin=[0, 0, 0])
@@ -70,7 +74,7 @@ def execute_global_registration(reference_down, target_down,        # pylint: di
                                 converge_certainty=0.9999):
     "find global registation"
     if _DEBUG:
-        print("Global registration")
+        print("Global registration start")
     distance_threshold = voxel_size * dist_thres_scalar
     result = o3d.pipelines.registration.registration_ransac_based_on_feature_matching(
         target_down, reference_down,  target_fpfh, reference_fpfh, True,
@@ -106,22 +110,26 @@ def prepare_dataset(ref, test_target, voxel_size):
     test_target_down, test_target_fpfh = preprocess_point_cloud(test_target, voxel_size)
     return ref_down, test_target_down, ref_fpfh, test_target_fpfh
 
-def get_transformations(ref, test_target, voxel_size=0.0005, verbose=False):
+def get_transformations(ref: o3d.cuda.pybind.geometry.PointCloud|o3d.cuda.pybind.geometry.TriangleMesh,  # pylint: disable=too-many-locals
+                        test_target: o3d.cuda.pybind.geometry.PointCloud|o3d.cuda.pybind.geometry.TriangleMesh,
+                        voxel_size: float=0.0005, verbose=False) -> tuple:
     "get transformations from pointclouds"
     start_time = perf_counter()
-    if _DEBUG:
-        print("Get transformations, voxel size", voxel_size)
-    ref_down, test_down, ref_fpfh, test_fpfh = prepare_dataset(ref, test_target, voxel_size)
+
+    draw_registration_result(ref, test_target, window_name="original pointclouds")
+    ref_down, ref_fpfh = preprocess_point_cloud(ref, voxel_size)
+    test_down, test_fpfh = preprocess_point_cloud(test_target, voxel_size)
+    #ref_down, test_down, ref_fpfh, test_fpfh = prepare_dataset(ref, test_target, voxel_size)
     prepare_time = perf_counter()
-    # if _SHOW:
-    #     o3d.visualization.draw_geometries([ref_down, test_down], window_name="downsample", height=500, width=500)
-    result_ransac = execute_global_registration(
-            ref_down, test_down, ref_fpfh, test_fpfh,
-            voxel_size)
-    global_time = perf_counter()
     if _DEBUG:
+        print("get_transformations, voxel size", voxel_size)
+    if _SHOW:
+        o3d.visualization.draw_geometries([ref_down, test_down], window_name="downsample", height=500, width=500)
+    result_ransac = execute_global_registration(ref_down, test_down, ref_fpfh, test_fpfh, voxel_size)
+    global_time = perf_counter()
+    if _DEBUG or verbose:
         print(f"Global Registration result: Fittnes {result_ransac.fitness} Rms {result_ransac.inlier_rmse}")
-        #draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration")
+        draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration")
 
     if result_ransac.fitness < GLOBAL_FITNESS or result_ransac.inlier_rmse > GLOBAL_RMSE:
         print("BAD GLOBAL REGISTRATION", result_ransac)
@@ -149,10 +157,5 @@ def get_transformations(ref, test_target, voxel_size=0.0005, verbose=False):
         return None, None
 
     transformation = result_icp.transformation
-
-    # test_down.transform(result_icp.transformation)
-    # target += test_down
-    # target = target.voxel_down_sample(voxel_size)
-        # print("information matrix", inf_matrix)
 
     return test_target, transformation #, inf_matrix
