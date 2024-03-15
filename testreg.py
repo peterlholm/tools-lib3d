@@ -64,7 +64,8 @@ if __name__ == "__main__":
     start_time = perf_counter()
     t_pcl = o3d.io.read_point_cloud(str(args.test_file))
 
-    transformation = get_transformations(ref_pcl, t_pcl)
+    target, transformation = get_transformations(ref_pcl, t_pcl, voxel_size=0.001)
+    print(type(transformation), transformation)
     stop_time = perf_counter()
     print("type", type(transformation))
     if _VERBOSE:
@@ -76,7 +77,8 @@ if __name__ == "__main__":
         print(transformation)
 
 
-    #draw_registration_result(ref_pcl, t_pcl, transformation=transformation)
+
+    draw_registration_result(ref_pcl, t_pcl, transformation=transformation, axis=True)
 
     # if args.output:
     #     print(args.output.parent.absolute())
