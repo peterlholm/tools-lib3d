@@ -41,7 +41,7 @@ def draw_registration_result(reference: o3d.cuda.pybind.geometry.PointCloud, # p
     if axis:
         axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.01, origin=[0, 0, 0])
         pointclouds.append(axis_pcd)
-    o3d.visualization.draw_geometries(pointclouds, window_name=window_name, width=500, height=500)
+    o3d.visualization.draw_geometries(pointclouds, window_name=window_name, width=500, height=500, point_show_normal=False) #mesh_show_back_face=False
 
 # def compute_normal(pcd):
 #     "creates normalts that all point in same (wrong) direction (due to low radius)"
@@ -170,3 +170,20 @@ def get_transformations(ref: o3d.cuda.pybind.geometry.PointCloud|o3d.cuda.pybind
     transformation = result_icp.transformation
 
     return test_target, transformation #, inf_matrix
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+    fil1 = Path("testdata/testobject/ph_obj/test_object.stl")
+    fil1a = Path("testdata/testobject/ph_obj/distort/test_object_p1M.ply")
+    fil2 = Path("testdata/testobject/ph_obj/distort/dist_0.001.ply")
+    art1 = Path("testdata/arti/file01.ply")
+    art2 = Path("testdata/arti/file04.ply")
+
+    TRANS = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
+    #mesh1 = o3d.io.read_triangle_mesh(str(fil1))
+    pcl1 = o3d.io.read_point_cloud(str(art1))
+    pcl2 = o3d.io.read_point_cloud(str(art2))
+    #t_mesh,transform = get_transformations(pcl1, pcl2)
+    #print(transform)
+    draw_registration_result(pcl1, pcl2, transformation=TRANS)

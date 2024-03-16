@@ -18,16 +18,21 @@
             "program": "testreg.py",
             "args": ["-d", "-v", "-s",
                     "testdata/testobject/ph_obj/test_object_p100K.ply",
-                    "testdata/testobject/ph_obj/distort/dist_0.0001_t.ply"
+                    "testdata/testobject/ph_obj/distort/dist_0.0001.ply"
                     ],
             "console": "integratedTerminal"
         },
         {
-            "name": "Testlib - register ph_obj",
+            "name": "Testlib - register tand",
             "type": "debugpy",
             "request": "launch",
             "program": "testlib.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": ["-d", "-v", "-s",
+            "testdata/arti/file01.ply",
+            "testdata/arti/file02.ply"
+            ],
+
         }
 
 
