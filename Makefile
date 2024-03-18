@@ -12,7 +12,7 @@ help:
 install:
 	#chmod a+x prg/*.py
 	mkdir -p $(DEST_DIR)
-	cp lib3d/* $(DEST_DIR)
+	cp lib3d/__init__.py lib3d/registration.py $(DEST_DIR)
 
 uninstall:
 	rm -f $(DEST_DIR)/noise_removal.py
