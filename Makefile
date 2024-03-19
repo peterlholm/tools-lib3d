@@ -1,6 +1,6 @@
 # makefile for compare_pcl
 
-VERSION=1.0.0-1
+VERSION=1.0.0-4
 DEST_DIR=/usr/local/lib/lib3d
 PKG_NAME=danbots-tools-lib3d-$(VERSION)
 PKG_FOLDER=tmp/package
@@ -15,6 +15,7 @@ install:
 	cp lib3d/__init__.py lib3d/registration.py $(DEST_DIR)
 
 uninstall:
+	rm -f $(DEST_DIR)/__init__.py
 	rm -f $(DEST_DIR)/noise_removal.py
 	rm -f $(DEST_DIR)/pcl_utils.py
 	rm -f $(DEST_DIR)/registration.py

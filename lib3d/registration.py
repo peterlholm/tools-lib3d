@@ -6,10 +6,10 @@ import numpy as np
 
 # pyrightx: reportMissingTypeStubs=true
 
-_DEBUG = True
+_DEBUG = False
 _SHOW = False
-_TIMING = True
-_TMPFILE = True
+_TIMING = False
+_TMPFILE = False
 
 # original
 GLOBAL_FITNESS = 0.5    # percent to overlap
@@ -22,8 +22,8 @@ LOCAL_FITNESS = 0.5
 LOCAL_RMSE = 0.001
 
 
-def draw_registration_result(reference: o3d.cuda.pybind.geometry.PointCloud, # pylint: disable=too-many-arguments
-                             test_source: o3d.cuda.pybind.geometry.PointCloud,
+def draw_registration_result(reference: o3d.geometry.PointCloud, # pylint: disable=too-many-arguments
+                             test_source: o3d.geometry.PointCloud,
                              transformation=None, axis=False, window_name="registration result", color=True):
     "Debug draw registration result"
     #print(type(reference), type(test_source))
@@ -116,8 +116,8 @@ def execute_local_registration(source_down, reference_down, voxel_size,
 #     test_target_down, test_target_fpfh = preprocess_point_cloud(test_target, voxel_size)
 #     return ref_down, test_target_down, ref_fpfh, test_target_fpfh
 
-def get_transformations(ref: o3d.cuda.pybind.geometry.PointCloud|o3d.cuda.pybind.geometry.TriangleMesh,  # pylint: disable=too-many-locals
-                        test_target: o3d.cuda.pybind.geometry.PointCloud|o3d.cuda.pybind.geometry.TriangleMesh,
+def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh,  # pylint: disable=too-many-locals
+                        test_target: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh,
                         voxel_size: float=0.0005, verbose=False) -> tuple:
     "get transformations from pointclouds"
     start_time = perf_counter()

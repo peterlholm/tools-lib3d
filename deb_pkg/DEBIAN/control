@@ -1,9 +1,9 @@
 Package: danbots-tools-lib3d
-Version: 1.0.0-1
+Version: 1.0.0-4
 Architecture: all
 Maintainer: Peter Holm <peter@holmit.dk>
 Depends: python3 (>=3.8)
-Section: 3d/utils
+Section: tools/danbots
 Priority: optional
 Description: Library tools for handling registation, stitching and 3dutilities.
  The package include the following tools:
