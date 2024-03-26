@@ -1,6 +1,6 @@
 # makefile for compare_pcl
 
-VERSION=1.0.0-4
+VERSION=1.0.0-5
 DEST_DIR=/usr/local/lib/lib3d
 PKG_NAME=danbots-tools-lib3d-$(VERSION)
 PKG_FOLDER=tmp/package

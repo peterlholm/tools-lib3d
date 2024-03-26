@@ -1,5 +1,5 @@
 Package: danbots-tools-lib3d
-Version: 1.0.0-4
+Version: 1.0.0-5
 Architecture: all
 Maintainer: Peter Holm <peter@holmit.dk>
 Depends: python3 (>=3.8)
