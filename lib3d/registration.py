@@ -1,4 +1,5 @@
-"pointcloud registrations"
+#lib3d/registration.py
+"""pointcloud registrations"""
 from time import perf_counter
 import copy
 import open3d as o3d
@@ -135,7 +136,7 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
         o3d.visualization.draw_geometries([ref_down, test_down], window_name="downsample", height=500, width=500)
         # GLOBAL registration
     result_ransac = execute_global_registration(ref_down, test_down, ref_fpfh, test_fpfh, voxel_size,
-                                                converge_itr=(100000), converge_certainty=0.999)
+                                                converge_itr=(100000), converge_certainty=0.999, dist_thres_scalar=1.5)
     global_time = perf_counter()
     if _DEBUG or verbose:
         print(f"Global Registration result: Fittnes {result_ransac.fitness} Rms {result_ransac.inlier_rmse}")

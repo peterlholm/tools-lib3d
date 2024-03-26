@@ -64,10 +64,9 @@ if __name__ == "__main__":
     start_time = perf_counter()
     t_pcl = o3d.io.read_point_cloud(str(args.test_file))
 
-    target, transformation = get_transformations(ref_pcl, t_pcl, voxel_size=0.001)
-    print(type(transformation), transformation)
+    target, transformation = get_transformations(ref_pcl, t_pcl)
+    print(transformation)
     stop_time = perf_counter()
-    print("type", type(transformation))
     if _VERBOSE:
         print(f"Stitching time: {stop_time-start_time:.2f} sec" )
     if transformation is None:

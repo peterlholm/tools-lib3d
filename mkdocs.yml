@@ -1,0 +1,13 @@
+site_name: Lib3d DOC
+
+theme:
+  name: "material"
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - index.md
+  - reference.md
+  - internal.md
+

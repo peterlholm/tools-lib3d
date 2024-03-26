@@ -4,11 +4,15 @@ numpy
 open3d
 #opencv-python-headless
 
+mkdocs
+mkdocs-autorefs
+mkdocs-material
+mkdocs-material-extensions
+mkdocstrings
+mkdocstrings-python
 
 
 
-#django
-#django-crispy-forms
 #requests
 #pillow
 #watchdog

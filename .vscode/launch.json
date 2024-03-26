@@ -17,8 +17,11 @@
             "request": "launch",
             "program": "testreg.py",
             "args": ["-d", "-v", "-s",
-                    "testdata/testobject/ph_obj/test_object_p100K.ply",
-                    "testdata/testobject/ph_obj/distort/dist_0.0001.ply"
+                        "testdata/arti/file01.ply",
+                        "testdata/arti/file02.ply"
+ 
+                    // "testdata/testobject/ph_obj/test_object_p100K.ply",
+                    // "testdata/testobject/ph_obj/distort/dist_0.0001.ply"
                     ],
             "console": "integratedTerminal"
         },
