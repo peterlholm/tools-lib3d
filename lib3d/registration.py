@@ -28,8 +28,8 @@ UNIT_MM = True
 
 if UNIT_MM:
     VOXEL_SIZE = 0.2
-    GLOBAL_RMSE = 0.5       # mm
-    LOCAL_RMSE = 1.0        # mm
+    GLOBAL_RMSE = 0.3      # mm
+    LOCAL_RMSE = 0.1       # mm
 else:
     VOXEL_SIZE = 0.0005
     GLOBAL_RMSE = 0.001     # m
@@ -156,11 +156,11 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
             draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration1")
 
     if result_ransac.fitness < GLOBAL_FITNESS or result_ransac.inlier_rmse > GLOBAL_RMSE:
-        print("BAD GLOBAL REGISTRATION", result_ransac)
+        print(f"BAD GLOBAL REGISTRATION Fittnes {result_ransac.fitness} Rms {result_ransac.inlier_rmse}")
         #print(result_ransac.transformation)
         if _SHOW:
             print("global transformation matrix", result_ransac, np.around(result_ransac.transformation,3))
-            draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration2")
+            draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="BAD Global registration")
         return None, None
     if _DEBUG:
         print("Local registration")

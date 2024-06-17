@@ -55,15 +55,15 @@ if __name__ == "__main__":
     else:
         print("Input file type error")
         sys.exit(1)
-
     # check 2. file or folder
-
     if not args.test_file.exists():
         print("input file/folder does not exist")
         sys.exit(1)
     if not args.test_file.suffix in ['.ply']:
         print("Input file type error")
         sys.exit(1)
+
+    # start ---------------------------------
 
     # register input in_pcl
     start_time = perf_counter()
