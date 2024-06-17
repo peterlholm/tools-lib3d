@@ -18,6 +18,11 @@ def surface_to_pcl(mesh, alg="poisson", number_of_points=100000, init_factor=10)
     return pcl
 
 if __name__ == "__main__":
+
+    # demo_icp_pcds = o3d.data.DemoICPPointClouds()
+    # source = o3d.io.read_point_cloud(demo_icp_pcds.paths[0])
+    # o3d.io.write_point_cloud("tmp/demp.ply", source)
+
     parser = argparse.ArgumentParser(prog='testreg', description='Test registration')
     parser.add_argument('-d', required=False, help="Turn debug on", action='store_true' )
     parser.add_argument('-v', required=False, help="Give verbose output", action='store_true' )
@@ -64,18 +69,16 @@ if __name__ == "__main__":
     start_time = perf_counter()
     t_pcl = o3d.io.read_point_cloud(str(args.test_file))
 
-    target, transformation = get_transformations(ref_pcl, t_pcl)
-    print(transformation)
+    target, transformation = get_transformations(ref_pcl, t_pcl, voxel_size=0.5)
+    #print(transformation)
     stop_time = perf_counter()
-    if _VERBOSE:
-        print(f"Stitching time: {stop_time-start_time:.2f} sec" )
+    if _VERBOSE and not _DEBUG:
+        print(f"Registration time: {stop_time-start_time:.2f} sec" )
     if transformation is None:
         print(f"-------- Registration of {str(args.test_file)} unsuccessfull ---------------")
         sys.exit(2)
     else:
-        print(transformation)
-
-
+        print("Final Transformation\n", transformation)
 
     draw_registration_result(ref_pcl, t_pcl, transformation=transformation, axis=True)
 

@@ -1,5 +1,7 @@
-#lib3d/registration.py
-"""pointcloud registrations"""
+'pointcloud registrations'
+
+#   240617  PLH     Change to work in mm
+
 from time import perf_counter
 import copy
 import open3d as o3d
@@ -7,10 +9,10 @@ import numpy as np
 
 # pyrightx: reportMissingTypeStubs=true
 
-_DEBUG = False
-_SHOW = False
+_DEBUG = True
+_SHOW = True
 _TIMING = False
-_TMPFILE = False
+_TMPFILE = True
 
 # original
 GLOBAL_FITNESS = 0.5    # percent to overlap
@@ -22,6 +24,16 @@ GLOBAL_RMSE = 0.001
 LOCAL_FITNESS = 0.5
 LOCAL_RMSE = 0.001
 
+UNIT_MM = True
+
+if UNIT_MM:
+    VOXEL_SIZE = 0.2
+    GLOBAL_RMSE = 0.5       # mm
+    LOCAL_RMSE = 1.0        # mm
+else:
+    VOXEL_SIZE = 0.0005
+    GLOBAL_RMSE = 0.001     # m
+    LOCAL_RMSE = 0.001      # m
 
 def draw_registration_result(reference: o3d.geometry.PointCloud, # pylint: disable=too-many-arguments
                              test_source: o3d.geometry.PointCloud,
@@ -65,7 +77,7 @@ def preprocess_point_cloud(pcd, voxel_size):
         pcd_down,
         o3d.geometry.KDTreeSearchParamHybrid(radius=radius_feature, max_nn=100))
     if _DEBUG:
-        print(f"Number features: {pcd_fpfh.num()}")
+        print(f"Number Points {len(pcd_down.points)}, Number features: {pcd_fpfh.num()}")
     return pcd_down, pcd_fpfh
 
 def execute_global_registration(reference_down, target_down,        # pylint: disable=too-many-arguments
@@ -119,7 +131,7 @@ def execute_local_registration(source_down, reference_down, voxel_size,
 
 def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh,  # pylint: disable=too-many-locals
                         test_target: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh,
-                        voxel_size: float=0.0005, verbose=False) -> tuple:
+                        voxel_size: float=VOXEL_SIZE, verbose=False) -> tuple:
     "get transformations from pointclouds"
     start_time = perf_counter()
     if _SHOW:
@@ -129,7 +141,7 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
     #ref_down, test_down, ref_fpfh, test_fpfh = prepare_dataset(ref, test_target, voxel_size)
     prepare_time = perf_counter()
     if _DEBUG:
-        print("get_transformations, voxel size", voxel_size)
+        #print("get_transformations, voxel size", voxel_size)
         o3d.io.write_point_cloud("tmp/ref_vox.ply", ref_down)
         o3d.io.write_point_cloud("tmp/test_vox.ply", test_down)
     if _SHOW:
@@ -150,7 +162,8 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
             print("global transformation matrix", result_ransac, np.around(result_ransac.transformation,3))
             draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration2")
         return None, None
-
+    if _DEBUG:
+        print("Local registration")
     local_start = perf_counter()
     result_icp = execute_local_registration(
             test_down, ref_down,
@@ -159,6 +172,8 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
     if _TIMING:
         print("Timing (sec)")
         print("Prepare", prepare_time-start_time, "Global", global_time-prepare_time, "Local", local_end-local_start)
+    if _DEBUG:
+        print(f"Localregistration: Fitness {result_icp.fitness} RMSE: {result_icp.inlier_rmse}")
     if result_icp.fitness < LOCAL_FITNESS or result_icp.inlier_rmse >LOCAL_RMSE:
         print("BAD LOCAL REGISTRATION", result_icp)
         if _SHOW:
