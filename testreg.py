@@ -68,8 +68,12 @@ if __name__ == "__main__":
     # register input in_pcl
     start_time = perf_counter()
     t_pcl = o3d.io.read_point_cloud(str(args.test_file))
+    print("pointcloud size", t_pcl.get_axis_aligned_bounding_box())
+    vol = t_pcl.get_axis_aligned_bounding_box().volume()
+    vox = vol ** (1./ 3.) / 100
+    print("Voxel estimate",vox)
 
-    target, transformation = get_transformations(ref_pcl, t_pcl, voxel_size=0.5)
+    target, transformation = get_transformations(ref_pcl, t_pcl, voxel_size=0.1)
     #print(transformation)
     stop_time = perf_counter()
     if _VERBOSE and not _DEBUG:

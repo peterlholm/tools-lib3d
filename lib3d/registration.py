@@ -9,10 +9,9 @@ import numpy as np
 
 # pyrightx: reportMissingTypeStubs=true
 
-_DEBUG = True
-_SHOW = True
+_DEBUG = False
+_SHOW = False
 _TIMING = False
-_TMPFILE = True
 
 # original
 GLOBAL_FITNESS = 0.5    # percent to overlap
@@ -29,7 +28,7 @@ UNIT_MM = True
 if UNIT_MM:
     VOXEL_SIZE = 0.2
     GLOBAL_RMSE = 0.3      # mm
-    LOCAL_RMSE = 0.1       # mm
+    LOCAL_RMSE = 0.2       # mm
 else:
     VOXEL_SIZE = 0.0005
     GLOBAL_RMSE = 0.001     # m
@@ -65,7 +64,6 @@ def draw_registration_result(reference: o3d.geometry.PointCloud, # pylint: disab
 #     # Get new and correctly orientated normals.
 #     pcd.estimate_normals()
 
-
 def preprocess_point_cloud(pcd, voxel_size):
     "prepare point cloud by down sample and compute features"
     pcd_down = pcd.voxel_down_sample(voxel_size)
@@ -83,9 +81,9 @@ def preprocess_point_cloud(pcd, voxel_size):
 def execute_global_registration(reference_down, target_down,        # pylint: disable=too-many-arguments
                                 reference_fpfh, target_fpfh,
                                 voxel_size, dist_thres_scalar=1.5,
-                                scale=False, edge_length_thres=0.99,
-                                converge_itr=(10**8),
-                                converge_certainty=0.9999):
+                                scale=False, edge_length_thres=0.9, # org 0.99
+                                converge_itr=(100000),       # org 10**8  demo 100000
+                                converge_certainty=0.999): # org 0.9999 demo 0.999
     "find global registation"
     #     voxel_size, dist_thres_scalar=1.5,
     # scale=False, edge_length_thres=0.99,
@@ -94,6 +92,8 @@ def execute_global_registration(reference_down, target_down,        # pylint: di
 
     if _DEBUG:
         print("Global registration start")
+    if _TIMING:
+        st = perf_counter()
     distance_threshold = voxel_size * dist_thres_scalar
     result = o3d.pipelines.registration.registration_ransac_based_on_feature_matching(
         target_down, reference_down,  target_fpfh, reference_fpfh, True,
@@ -106,6 +106,8 @@ def execute_global_registration(reference_down, target_down,        # pylint: di
                 distance_threshold)
         ], o3d.pipelines.registration.RANSACConvergenceCriteria(
             converge_itr, converge_certainty))
+    if _TIMING:
+        print(f"Global registation time: {perf_counter()-st} sec")
     return result
 
 def execute_local_registration(source_down, reference_down, voxel_size,
@@ -156,7 +158,7 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
             draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration1")
 
     if result_ransac.fitness < GLOBAL_FITNESS or result_ransac.inlier_rmse > GLOBAL_RMSE:
-        print(f"BAD GLOBAL REGISTRATION Fittnes {result_ransac.fitness} Rms {result_ransac.inlier_rmse}")
+        print(f"BAD GLOBAL REGISTRATION Fittnes {result_ransac.fitness} < {GLOBAL_FITNESS} Rms {result_ransac.inlier_rmse} > {GLOBAL_RMSE}")
         #print(result_ransac.transformation)
         if _SHOW:
             print("global transformation matrix", result_ransac, np.around(result_ransac.transformation,3))
@@ -175,7 +177,7 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
     if _DEBUG:
         print(f"Localregistration: Fitness {result_icp.fitness} RMSE: {result_icp.inlier_rmse}")
     if result_icp.fitness < LOCAL_FITNESS or result_icp.inlier_rmse >LOCAL_RMSE:
-        print("BAD LOCAL REGISTRATION", result_icp)
+        print(f"BAD LOCAL REGISTRATION Fittnes {result_icp.fitness} < {LOCAL_FITNESS} Rms {result_icp.inlier_rmse} > {LOCAL_RMSE}")
         if _SHOW:
             print("Local transformation matrix", result_icp, np.around(result_icp.transformation,3))
             draw_registration_result(ref_down, test_down, result_icp.transformation, window_name="Local registration")

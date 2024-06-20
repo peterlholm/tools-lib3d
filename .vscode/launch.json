@@ -12,6 +12,17 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Testreg - Demo",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "testreg.py",
+            "console": "integratedTerminal",
+            "args": ["-d", "-v", "-s",
+            "testdata/demo/cloud1.ply",
+            "testdata/demo/cloud2.ply"
+            ],
+        },
+        {
             "name": "Testreg - register Fortand",
             "type": "debugpy",
             "request": "launch",
@@ -19,7 +30,7 @@
             "console": "integratedTerminal",
             "args": ["-d", "-v", "-s",
             "testdata/fortand/cut/file01.ply",
-            "testdata/fortand/trans/file04.ply"
+            "testdata/fortand/cut/file04.ply"
             ],
 
         },
