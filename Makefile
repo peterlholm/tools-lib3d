@@ -13,13 +13,15 @@ install:
 	#chmod a+x prg/*.py
 	mkdir -p $(DEST_DIR)
 	cp lib3d/__init__.py lib3d/registration.py $(DEST_DIR)
+	cp registration3d.py /usr/local/bin/
+	chmod a+x /usr/local/bin/registration3d
 
 uninstall:
 	rm -f $(DEST_DIR)/__init__.py
 	rm -f $(DEST_DIR)/noise_removal.py
 	rm -f $(DEST_DIR)/pcl_utils.py
 	rm -f $(DEST_DIR)/registration.py
-	rm -f $(DEST_DIR)/stitch.py
+	#rm -f $(DEST_DIR)/stitch.py
 	-rmdir $(DEST_DIR)
 
 copy-pkg:

@@ -1,6 +1,7 @@
 'pointcloud registrations'
 
 #   240617  PLH     Change to work in mm
+#   240620  PLH     New default param
 
 from time import perf_counter
 import copy
@@ -54,6 +55,14 @@ def draw_registration_result(reference: o3d.geometry.PointCloud, # pylint: disab
         axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.01, origin=[0, 0, 0])
         pointclouds.append(axis_pcd)
     o3d.visualization.draw_geometries(pointclouds, window_name=window_name, width=500, height=500, point_show_normal=False) #mesh_show_back_face=False
+
+
+def evaluate_registration(source_pcl, test_pcl, transformation):
+    "Calculate the errors in the given transformation"
+    max_distance = 0.1
+    evaluation = o3d.pipelines.registration.evaluate_registration(source_pcl, test_pcl, max_distance, transformation)
+    print(evaluation)
+    return evaluation
 
 # def compute_normal(pcd):
 #     "creates normalts that all point in same (wrong) direction (due to low radius)"
