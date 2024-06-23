@@ -15,7 +15,7 @@
             "name": "Testreg - Demo",
             "type": "debugpy",
             "request": "launch",
-            "program": "testreg.py",
+            "program": "registration3d.py",
             "console": "integratedTerminal",
             "args": ["-d", "-v", "-s",
             "testdata/demo/cloud1.ply",
@@ -26,13 +26,23 @@
             "name": "Testreg - register Fortand",
             "type": "debugpy",
             "request": "launch",
-            "program": "testreg.py",
+            "program": "registration3d.py",
             "console": "integratedTerminal",
             "args": ["-d", "-v", "-s",
-            "testdata/fortand/cut/file01.ply",
-            "testdata/fortand/cut/file04.ply"
+            "testdata/fortand/trans/file01.ply",
+            "testdata/fortand/trans/file02.ply"
             ],
-
+        },
+        {
+            "name": "Testreg - register Fortand full",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "registration3d.py",
+            "console": "integratedTerminal",
+            "args": ["-v",
+            "testdata/fortand/ORG/center.ply",
+            "testdata/fortand/cut/file02.ply"
+            ],
         },
         {
             "name": "Test registration - ph_obj",

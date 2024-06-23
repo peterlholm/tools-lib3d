@@ -20,8 +20,9 @@ GLOBAL_RMSE = 0.001
 GLOBAL_FITNESS = 0.2   # percent to overlap
 GLOBAL_RMSE = 0.001
 
+MIN_FITNESS = 0.2
 #original
-LOCAL_FITNESS = 0.5
+LOCAL_FITNESS = 0.2
 LOCAL_RMSE = 0.001
 
 UNIT_MM = True
@@ -29,7 +30,7 @@ UNIT_MM = True
 if UNIT_MM:
     VOXEL_SIZE = 0.2
     GLOBAL_RMSE = 0.3      # mm
-    LOCAL_RMSE = 0.2       # mm
+    LOCAL_RMSE = 0.1       # mm
 else:
     VOXEL_SIZE = 0.0005
     GLOBAL_RMSE = 0.001     # m
@@ -47,21 +48,24 @@ def draw_registration_result(reference: o3d.geometry.PointCloud, # pylint: disab
         test_temp.paint_uniform_color([0.9, 0.1, 0.1])        # red
 
     if not transformation is None:
-        test_temp.transform(transformation)
+        #test_temp.transform(transformation)
+        reference_temp.transform(transformation)
 
     pointclouds =[ reference_temp, test_temp]
 
     if axis:
-        axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.01, origin=[0, 0, 0])
+        axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=10.0, origin=[0, 0, 0])
         pointclouds.append(axis_pcd)
     o3d.visualization.draw_geometries(pointclouds, window_name=window_name, width=500, height=500, point_show_normal=False) #mesh_show_back_face=False
 
 
-def evaluate_registration(source_pcl, test_pcl, transformation):
-    "Calculate the errors in the given transformation"
+def evaluate_registration(source_pcl, target_pcl, transformation):
+    "Calculate the errors in the given transformation of source to target"
     max_distance = 0.1
-    evaluation = o3d.pipelines.registration.evaluate_registration(source_pcl, test_pcl, max_distance, transformation)
-    print(evaluation)
+    if _DEBUG:
+        print(f"Source {len(source_pcl.points)} Points Target: {len(target_pcl.points)}")
+    evaluation = o3d.pipelines.registration.evaluate_registration(source_pcl, target_pcl, max_distance, transformation)
+    #print(evaluation)
     return evaluation
 
 # def compute_normal(pcd):
@@ -105,7 +109,7 @@ def execute_global_registration(reference_down, target_down,        # pylint: di
         st = perf_counter()
     distance_threshold = voxel_size * dist_thres_scalar
     result = o3d.pipelines.registration.registration_ransac_based_on_feature_matching(
-        target_down, reference_down,  target_fpfh, reference_fpfh, True,
+        reference_down, target_down, reference_fpfh, target_fpfh, True,
         distance_threshold,
         o3d.pipelines.registration.TransformationEstimationPointToPoint(scale),
         3, [
@@ -117,15 +121,16 @@ def execute_global_registration(reference_down, target_down,        # pylint: di
             converge_itr, converge_certainty))
     if _TIMING:
         print(f"Global registation time: {perf_counter()-st} sec")
+    # result
     return result
 
-def execute_local_registration(source_down, reference_down, voxel_size,
+def execute_local_registration(reference_down, target_down, voxel_size,
                                init_transformation, converge_max_itr=30):
     "Find local registration"
     conver_crit = o3d.pipelines.registration.ICPConvergenceCriteria()
     conver_crit.max_iteration = converge_max_itr
     result_icp = o3d.pipelines.registration.registration_icp(
-                    source_down, reference_down, voxel_size, init_transformation,
+                    reference_down, target_down,  voxel_size, init_transformation,
                     o3d.pipelines.registration.TransformationEstimationPointToPlane(),
                     criteria=conver_crit)
     return result_icp
@@ -142,7 +147,7 @@ def execute_local_registration(source_down, reference_down, voxel_size,
 
 def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh,  # pylint: disable=too-many-locals
                         test_target: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh,
-                        voxel_size: float=VOXEL_SIZE, verbose=False) -> tuple:
+                        voxel_size: float=VOXEL_SIZE, min_fitness=MIN_FITNESS, verbose=False) -> tuple:
     "get transformations from pointclouds"
     start_time = perf_counter()
     if _SHOW:
@@ -151,10 +156,10 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
     test_down, test_fpfh = preprocess_point_cloud(test_target, voxel_size)
     #ref_down, test_down, ref_fpfh, test_fpfh = prepare_dataset(ref, test_target, voxel_size)
     prepare_time = perf_counter()
-    if _DEBUG:
-        #print("get_transformations, voxel size", voxel_size)
-        o3d.io.write_point_cloud("tmp/ref_vox.ply", ref_down)
-        o3d.io.write_point_cloud("tmp/test_vox.ply", test_down)
+    # if _DEBUG:
+    #     #print("get_transformations, voxel size", voxel_size)
+    #     o3d.io.write_point_cloud("/tmp/ref_vox.ply", ref_down)
+    #     o3d.io.write_point_cloud("/tmp/test_vox.ply", test_down)
     if _SHOW:
         o3d.visualization.draw_geometries([ref_down, test_down], window_name="downsample", height=500, width=500)
         # GLOBAL registration
@@ -162,35 +167,37 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
                                                 converge_itr=(100000), converge_certainty=0.999, dist_thres_scalar=1.5)
     global_time = perf_counter()
     if _DEBUG or verbose:
-        print(f"Global Registration result: Fittnes {result_ransac.fitness} Rms {result_ransac.inlier_rmse}")
+        print(f"Global Registration result: Fittnes {result_ransac.fitness:.2} Rms {result_ransac.inlier_rmse:.3}")
+        #print("Global transformation matrix\n", result_ransac.transformation)
         if _SHOW:
-            draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration1")
+            draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration")
 
-    if result_ransac.fitness < GLOBAL_FITNESS or result_ransac.inlier_rmse > GLOBAL_RMSE:
-        print(f"BAD GLOBAL REGISTRATION Fittnes {result_ransac.fitness} < {GLOBAL_FITNESS} Rms {result_ransac.inlier_rmse} > {GLOBAL_RMSE}")
+    if result_ransac.fitness < min_fitness or result_ransac.inlier_rmse > GLOBAL_RMSE:
+        print(f"BAD GLOBAL REGISTRATION Fittnes {result_ransac.fitness:.2} < {min_fitness} Rms {result_ransac.inlier_rmse:.3} > {GLOBAL_RMSE}")
         #print(result_ransac.transformation)
         if _SHOW:
-            print("global transformation matrix", result_ransac, np.around(result_ransac.transformation,3))
+            #print("global transformation matrix", result_ransac, result_ransac.transformation)
             draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="BAD Global registration")
         return None, None
     if _DEBUG:
         print("Local registration")
     local_start = perf_counter()
-    result_icp = execute_local_registration(
-            test_down, ref_down,
-            voxel_size, result_ransac.transformation)
+    result_icp = execute_local_registration(ref_down, test_down, voxel_size, result_ransac.transformation)
     local_end = perf_counter()
     if _TIMING:
         print("Timing (sec)")
         print("Prepare", prepare_time-start_time, "Global", global_time-prepare_time, "Local", local_end-local_start)
     if _DEBUG:
-        print(f"Localregistration: Fitness {result_icp.fitness} RMSE: {result_icp.inlier_rmse}")
-    if result_icp.fitness < LOCAL_FITNESS or result_icp.inlier_rmse >LOCAL_RMSE:
-        print(f"BAD LOCAL REGISTRATION Fittnes {result_icp.fitness} < {LOCAL_FITNESS} Rms {result_icp.inlier_rmse} > {LOCAL_RMSE}")
+        print(f"Localregistration: Fitness {result_icp.fitness:.2} RMSE: {result_icp.inlier_rmse:.3}")
+        #print("Local transformation matrix\n", result_icp.transformation)
+        evalu = evaluate_registration(ref_down, test_down, result_icp.transformation)
+        print("Local eval", evalu)
+    if result_icp.fitness < min_fitness or result_icp.inlier_rmse >LOCAL_RMSE:
+        print(f"BAD LOCAL REGISTRATION Fittnes {result_icp.fitness} < {min_fitness} Rms {result_icp.inlier_rmse} > {LOCAL_RMSE}")
         if _SHOW:
-            print("Local transformation matrix", result_icp, np.around(result_icp.transformation,3))
+            print("Local transformation matrix", result_icp, result_icp.transformation)
             draw_registration_result(ref_down, test_down, result_icp.transformation, window_name="Local registration")
-            print("global transformation matrix", result_ransac, np.around(result_ransac.transformation,3))
+            print("global transformation matrix", result_ransac, result_ransac.transformation)
             draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration")
         return None, None
 

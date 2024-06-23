@@ -1,16 +1,21 @@
+#!/bin/python
 "Test registration part"
-
-import sys
 from time import perf_counter
 from pathlib import Path
 import argparse
+import sys
 import open3d as o3d
+
+try:
+    from lib3d.registration import get_transformations, draw_registration_result, evaluate_registration
+except ModuleNotFoundError:
+    sys.path.append("/usr/local/lib")
+    from lib3d.registration import get_transformations, draw_registration_result, evaluate_registration     #pylint: disable=wrong-import-position
+
 #import numpy as np
-from lib3d.registration import draw_registration_result, get_transformations
 
 def surface_to_pcl(mesh, alg="poisson", number_of_points=100000, init_factor=10):
     "convert mesh surfaces to pointcloud, point_factor vertices/points"
-
     if alg=='poisson':
         pcl = mesh.sample_points_poisson_disk(number_of_points=number_of_points, )
     else:
@@ -18,16 +23,11 @@ def surface_to_pcl(mesh, alg="poisson", number_of_points=100000, init_factor=10)
     return pcl
 
 if __name__ == "__main__":
-
-    # demo_icp_pcds = o3d.data.DemoICPPointClouds()
-    # source = o3d.io.read_point_cloud(demo_icp_pcds.paths[0])
-    # o3d.io.write_point_cloud("tmp/demp.ply", source)
-
-    parser = argparse.ArgumentParser(prog='testreg', description='Registration of test object, giving translation and errors')
+    parser = argparse.ArgumentParser(prog='registration3d', description='Registration of test object, giving translation and errors')
     parser.add_argument('-d', required=False, help="Turn debug on", action='store_true' )
     parser.add_argument('-v', required=False, help="Give verbose output", action='store_true' )
     parser.add_argument('-s', required=False, help="Show pointclouds", action='store_true' )
-    parser.add_argument('-o', '--output', required=False, type=Path, help="Output file", metavar="Outputfile")
+    #parser.add_argument('-o', '--output', required=False, type=Path, help="Output file", metavar="Outputfile")
     parser.add_argument('reference_file', type=Path, help="The original mesh or pointcloud")
     parser.add_argument('test_file', type=Path, help="The pointcloud to be stitched")
 
@@ -66,13 +66,16 @@ if __name__ == "__main__":
     # start ---------------------------------
 
     # register input in_pcl
-    start_time = perf_counter()
     t_pcl = o3d.io.read_point_cloud(str(args.test_file))
-    print("pointcloud size", t_pcl.get_axis_aligned_bounding_box())
+    if _DEBUG:
+        print("pointcloud size", t_pcl.get_axis_aligned_bounding_box())
     vol = t_pcl.get_axis_aligned_bounding_box().volume()
     vox = vol ** (1./ 3.) / 100
-    print("Voxel estimate",vox)
-
+    if _DEBUG:
+        print("Voxel estimate",vox)
+    if _VERBOSE:
+        print(f"Number points:  {len(ref_pcl.points)},  {len(t_pcl.points)}")
+    start_time = perf_counter()
     target, transformation = get_transformations(ref_pcl, t_pcl, voxel_size=0.1)
     #print(transformation)
     stop_time = perf_counter()
@@ -84,7 +87,12 @@ if __name__ == "__main__":
     else:
         print("Final Transformation\n", transformation)
 
-    draw_registration_result(ref_pcl, t_pcl, transformation=transformation, axis=True)
+    #   EVAL = evaluate_registration(ref_pcl, t_pcl, transformation)
+    #   print(EVAL)
+    #   print(f"Fittnes: {EVAL.fitness*100:.2f}% RMSE: {EVAL.inlier_rmse:.3f} CorrespondenceSet: {len(EVAL.correspondence_set)}")
+
+    if _SHOW:
+        draw_registration_result(ref_pcl, t_pcl, transformation=transformation, axis=True)
 
     # if args.output:
     #     print(args.output.parent.absolute())
