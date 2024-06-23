@@ -7,10 +7,10 @@ import sys
 import open3d as o3d
 
 try:
-    from lib3d.registration import get_transformations, draw_registration_result, evaluate_registration
+    from lib3d.registration import get_transformations, draw_registration_result #, evaluate_registration
 except ModuleNotFoundError:
     sys.path.append("/usr/local/lib")
-    from lib3d.registration import get_transformations, draw_registration_result, evaluate_registration     #pylint: disable=wrong-import-position
+    from lib3d.registration import get_transformations, draw_registration_result #, evaluate_registration
 
 #import numpy as np
 
@@ -85,14 +85,14 @@ if __name__ == "__main__":
         print(f"-------- Registration of {str(args.test_file)} unsuccessfull ---------------")
         sys.exit(2)
     else:
-        print("Final Transformation\n", transformation)
-
+        print("Final Transformation\n", transformation.transformation)
+        print(f"Fitness: {transformation.fitness*100:.1f}% RMSE: {transformation.inlier_rmse:.3f}")
     #   EVAL = evaluate_registration(ref_pcl, t_pcl, transformation)
     #   print(EVAL)
     #   print(f"Fittnes: {EVAL.fitness*100:.2f}% RMSE: {EVAL.inlier_rmse:.3f} CorrespondenceSet: {len(EVAL.correspondence_set)}")
 
     if _SHOW:
-        draw_registration_result(ref_pcl, t_pcl, transformation=transformation, axis=True)
+        draw_registration_result(ref_pcl, t_pcl, transformation=transformation.transformation, axis=True)
 
     # if args.output:
     #     print(args.output.parent.absolute())

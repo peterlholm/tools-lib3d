@@ -6,7 +6,7 @@
 from time import perf_counter
 import copy
 import open3d as o3d
-import numpy as np
+#import numpy as np
 
 # pyrightx: reportMissingTypeStubs=true
 
@@ -201,9 +201,7 @@ def get_transformations(ref: o3d.geometry.PointCloud|o3d.geometry.TriangleMesh, 
             draw_registration_result(ref_down, test_down, result_ransac.transformation, window_name="Global registration")
         return None, None
 
-    transformation = result_icp.transformation
-
-    return test_target, transformation #, inf_matrix
+    return test_target, result_icp #, inf_matrix
 
 
 if __name__ == "__main__":
